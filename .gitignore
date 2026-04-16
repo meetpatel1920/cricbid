@@ -43,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Firebase (optional but recommended for security)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Environment / secrets
+.env
+.env.*
+
+# Local config files
+*.keystore
+key.properties
+
+# Mac / Windows system files
+Thumbs.db
