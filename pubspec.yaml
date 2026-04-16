@@ -100,7 +100,7 @@ flutter:
   assets:
     - assets/
 
-  fonts:
-    - family: CricBid
-      fonts:
-        - asset: assets/fonts/
+  # fonts:
+  #   - family: CricBid
+  #     fonts:
+  #       - asset: assets/fonts/
