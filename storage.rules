@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Player images - owner can upload their own
+    match /player_images/{playerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 2 * 1024 * 1024; // 2MB max
+    }
+
+    // Team logos - team owner can upload
+    match /team_logos/{teamId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.resource.size < 2 * 1024 * 1024;
+    }
+
+    // PDFs - admin generated, all members can read
+    match /pdfs/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Timetables - admin generated, all members can read
+    match /timetables/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
