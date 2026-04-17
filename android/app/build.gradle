@@ -64,8 +64,8 @@ flutter {
     source '../..'
 }
 
-dependencies {
-    coreLibraryDesugaring 'com.android.tools.build:desugaring:2.0.4'
+dependencies {        
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
     implementation 'com.google.firebase:firebase-messaging:23.4.0'
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
 }
