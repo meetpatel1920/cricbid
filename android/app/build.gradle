@@ -25,8 +25,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.cricbid.app"
-    compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    compileSdkVersion 36
+    ndkVersion "28.0.12433566"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -44,10 +44,10 @@ android {
 
     defaultConfig {
         applicationId "com.cricbid.app"
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        minSdkVersion 24
+        targetSdkVersion 36
+        versionCode 1        
+        versionName "1.0"
         multiDexEnabled true
     }
 
