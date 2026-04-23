@@ -1,12 +1,13 @@
 // ignore_for_file: unused_import
+import 'package:cricbid/models/player_model.dart';
+import 'package:cricbid/models/team_model.dart';
+import 'package:cricbid/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../core/consts/app_consts.dart';
 import '../../routes/app_routes.dart';
-import '../../models/app_models.dart';
 import '../../services/notification_service.dart';
 
 class AuthController extends GetxController {
@@ -157,11 +158,7 @@ class AuthController extends GetxController {
     // Mock user — load from Firestore by phone if exists, else create
     try {
       final phone = _pendingPhone;
-      final query = await _db
-          .collection(AppConsts.colUsers)
-          .where('phone', isEqualTo: '+91$phone')
-          .limit(1)
-          .get();
+      final query = await _db.collection(AppConsts.colUsers).where('phone', isEqualTo: '+91$phone').limit(1).get();
 
       UserModel user;
       if (query.docs.isEmpty) {
@@ -227,10 +224,7 @@ class AuthController extends GetxController {
   Future<void> _linkPhoneToExistingEntities(String uid, String fullPhone) async {
     final phone = fullPhone.replaceAll('+91', '').trim();
 
-    final teamsQuery = await _db
-        .collection(AppConsts.colTeams)
-        .where('ownerPhone', isEqualTo: phone)
-        .get();
+    final teamsQuery = await _db.collection(AppConsts.colTeams).where('ownerPhone', isEqualTo: phone).get();
 
     for (final teamDoc in teamsQuery.docs) {
       final team = TeamModel.fromMap(teamDoc.data(), teamDoc.id);
@@ -248,10 +242,7 @@ class AuthController extends GetxController {
       }
     }
 
-    final playersQuery = await _db
-        .collection(AppConsts.colPlayers)
-        .where('phone', isEqualTo: phone)
-        .get();
+    final playersQuery = await _db.collection(AppConsts.colPlayers).where('phone', isEqualTo: phone).get();
 
     for (final playerDoc in playersQuery.docs) {
       final player = PlayerModel.fromMap(playerDoc.data(), playerDoc.id);
@@ -306,16 +297,11 @@ class AuthController extends GetxController {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  bool get isLoggedIn =>
-      currentUser.value != null || _auth.currentUser != null;
+  bool get isLoggedIn => currentUser.value != null || _auth.currentUser != null;
 
-  String get uid =>
-      currentUser.value?.uid ?? _auth.currentUser?.uid ?? '';
+  String get uid => currentUser.value?.uid ?? _auth.currentUser?.uid ?? '';
 
-  String get phone =>
-      _pendingPhone.isNotEmpty
-          ? _pendingPhone
-          : (_auth.currentUser?.phoneNumber ?? '').replaceAll('+91', '').trim();
+  String get phone => _pendingPhone.isNotEmpty ? _pendingPhone : (_auth.currentUser?.phoneNumber ?? '').replaceAll('+91', '').trim();
 
   void _startResendTimer() {
     resendSeconds.value = 60;

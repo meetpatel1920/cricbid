@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cricbid/models/player_model.dart';
+import 'package:cricbid/models/team_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +8,6 @@ import 'package:shimmer/shimmer.dart';
 
 import '../theme/app_colors.dart';
 import '../consts/app_consts.dart';
-import '../../models/app_models.dart';
 
 // ════════════════════════════════════════════════════════════
 //  APP BUTTON
@@ -156,8 +157,7 @@ class AppLoader extends StatelessWidget {
           ),
           if (message != null) ...[
             const SizedBox(height: 12),
-            Text(message!,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(message!, style: Theme.of(context).textTheme.bodySmall),
           ],
         ],
       ),
@@ -216,9 +216,7 @@ class PlayerAvatar extends StatelessWidget {
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: borderColor != null
-            ? Border.all(color: borderColor!, width: 2)
-            : null,
+        border: borderColor != null ? Border.all(color: borderColor!, width: 2) : null,
       ),
       child: ClipOval(
         child: photoUrl != null && photoUrl!.isNotEmpty
@@ -226,8 +224,7 @@ class PlayerAvatar extends StatelessWidget {
                 imageUrl: photoUrl!,
                 fit: BoxFit.cover,
                 placeholder: (_, __) => _initial(theme, initial, radius),
-                errorWidget: (_, __, ___) =>
-                    _initial(theme, initial, radius),
+                errorWidget: (_, __, ___) => _initial(theme, initial, radius),
               )
             : _initial(theme, initial, radius),
       ),
@@ -291,8 +288,7 @@ class PlayerCard extends StatelessWidget {
 
     final cardBorder = teamColor != null
         ? Border.all(color: teamColor!.withOpacity(0.4), width: 1.5)
-        : Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.border);
+        : Border.all(color: isDark ? AppColors.darkBorder : AppColors.border);
 
     return GestureDetector(
       onTap: onTap,
@@ -380,8 +376,7 @@ class PlayerCard extends StatelessWidget {
                       ),
                     ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -426,8 +421,7 @@ class TeamCard extends StatelessWidget {
     Color teamColor = theme.colorScheme.primary;
     if (team.themeColor != null) {
       try {
-        teamColor =
-            Color(int.parse('FF${team.themeColor!.replaceAll('#', '')}', radix: 16));
+        teamColor = Color(int.parse('FF${team.themeColor!.replaceAll('#', '')}', radix: 16));
       } catch (_) {}
     }
 
@@ -452,8 +446,7 @@ class TeamCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.teamSurface(teamColor, dark: isDark),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: AppColors.teamBorder(teamColor)),
+                border: Border.all(color: AppColors.teamBorder(teamColor)),
               ),
               child: team.logoUrl != null
                   ? ClipRRect(
@@ -544,8 +537,7 @@ class _TypeChip extends StatelessWidget {
           const SizedBox(width: 3),
           Text(
             type,
-            style: TextStyle(
-                fontSize: 10, color: color, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -577,11 +569,7 @@ class LiveBadge extends StatelessWidget {
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-          )
-              .animate(onPlay: (c) => c.repeat())
-              .fadeOut(duration: 600.ms)
-              .then()
-              .fadeIn(duration: 600.ms),
+          ).animate(onPlay: (c) => c.repeat()).fadeOut(duration: 600.ms).then().fadeIn(duration: 600.ms),
           const SizedBox(width: 6),
           const Text(
             'LIVE',
@@ -617,8 +605,7 @@ class SoldAnimationOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isBatter = playerType == AppConsts.typeBatting ||
-        playerType == AppConsts.typeAllRounder;
+    final isBatter = playerType == AppConsts.typeBatting || playerType == AppConsts.typeAllRounder;
 
     return Container(
       color: Colors.black.withOpacity(0.85),
@@ -653,10 +640,7 @@ class SoldAnimationOverlay extends StatelessWidget {
                 color: AppColors.accent,
                 letterSpacing: 4,
               ),
-            )
-                .animate()
-                .fadeIn(duration: 300.ms, delay: 200.ms)
-                .slideY(begin: 0.3, end: 0, duration: 300.ms),
+            ).animate().fadeIn(duration: 300.ms, delay: 200.ms).slideY(begin: 0.3, end: 0, duration: 300.ms),
             const SizedBox(height: 12),
             Text(
               playerName,
@@ -676,8 +660,7 @@ class SoldAnimationOverlay extends StatelessWidget {
             ).animate().fadeIn(delay: 500.ms),
             const SizedBox(height: 16),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.accent,
                 borderRadius: BorderRadius.circular(30),
@@ -690,10 +673,7 @@ class SoldAnimationOverlay extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-            )
-                .animate()
-                .fadeIn(delay: 600.ms)
-                .scale(
+            ).animate().fadeIn(delay: 600.ms).scale(
                   begin: const Offset(0.7, 0.7),
                   duration: 400.ms,
                   curve: Curves.elasticOut,
@@ -720,9 +700,7 @@ class SkipAnimationOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('⏭️', style: TextStyle(fontSize: 60))
-                .animate()
-                .scale(duration: 300.ms, curve: Curves.easeOut),
+            const Text('⏭️', style: TextStyle(fontSize: 60)).animate().scale(duration: 300.ms, curve: Curves.easeOut),
             const SizedBox(height: 16),
             Text(
               'SKIPPED',
@@ -736,8 +714,7 @@ class SkipAnimationOverlay extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               playerName,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 20, color: Colors.white70),
+              style: GoogleFonts.plusJakartaSans(fontSize: 20, color: Colors.white70),
             ).animate().fadeIn(delay: 250.ms),
           ],
         ),

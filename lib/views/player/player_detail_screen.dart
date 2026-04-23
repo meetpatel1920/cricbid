@@ -1,4 +1,4 @@
-import 'package:cricbid/models/app_models.dart';
+import 'package:cricbid/models/player_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';

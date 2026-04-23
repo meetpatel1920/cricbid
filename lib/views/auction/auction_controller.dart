@@ -1,12 +1,17 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/auction_event_model.dart';
+import 'package:cricbid/models/auction_model.dart';
+import 'package:cricbid/models/auction_round_model.dart';
+import 'package:cricbid/models/leave_auction_state_model.dart';
+import 'package:cricbid/models/player_model.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/consts/app_consts.dart';
 import '../../services/notification_service.dart';
 import '../../routes/app_routes.dart';
-import '../../models/app_models.dart';
+
 import '../auth/auth_controller.dart';
 import '../group/group_controller.dart';
 import '../player/player_controller.dart';
@@ -46,13 +51,7 @@ class AuctionController extends GetxController {
 
   void _listenToLiveState() {
     if (_groupId.isEmpty) return;
-    _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .collection('live_auction')
-        .doc('state')
-        .snapshots()
-        .listen((snap) {
+    _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').snapshots().listen((snap) {
       if (snap.exists) {
         liveState.value = LiveAuctionState.fromMap(snap.data()!);
         _onLiveStateChanged(liveState.value!);
@@ -62,8 +61,7 @@ class AuctionController extends GetxController {
 
   void _onLiveStateChanged(LiveAuctionState state) {
     if (state.currentPlayerId != null && state.currentPlayerId!.isNotEmpty) {
-      final found = _playerCtrl.players
-          .firstWhereOrNull((p) => p.id == state.currentPlayerId);
+      final found = _playerCtrl.players.firstWhereOrNull((p) => p.id == state.currentPlayerId);
       activePlayer.value = found;
     }
   }
@@ -73,10 +71,7 @@ class AuctionController extends GetxController {
     final group = _groupCtrl.group;
     if (group?.currentAuctionId == null) return;
 
-    final doc = await _db
-        .collection(AppConsts.colAuctions)
-        .doc(group!.currentAuctionId)
-        .get();
+    final doc = await _db.collection(AppConsts.colAuctions).doc(group!.currentAuctionId).get();
     if (doc.exists) {
       currentAuction.value = AuctionModel.fromMap(doc.data()!, doc.id);
       await _loadRounds(currentAuction.value!.id);
@@ -84,13 +79,8 @@ class AuctionController extends GetxController {
   }
 
   Future<void> _loadRounds(String auctionId) async {
-    final snap = await _db
-        .collection(AppConsts.colAuctionRounds)
-        .where('auctionId', isEqualTo: auctionId)
-        .orderBy('roundNumber')
-        .get();
-    rounds.value =
-        snap.docs.map((d) => AuctionRoundModel.fromMap(d.data(), d.id)).toList();
+    final snap = await _db.collection(AppConsts.colAuctionRounds).where('auctionId', isEqualTo: auctionId).orderBy('roundNumber').get();
+    rounds.value = snap.docs.map((d) => AuctionRoundModel.fromMap(d.data(), d.id)).toList();
     if (rounds.isNotEmpty) {
       currentRound.value = rounds.last;
     }
@@ -105,9 +95,7 @@ class AuctionController extends GetxController {
         .limit(200)
         .snapshots()
         .listen((snap) {
-      eventHistory.value = snap.docs
-          .map((d) => AuctionEventModel.fromMap(d.data(), d.id))
-          .toList();
+      eventHistory.value = snap.docs.map((d) => AuctionEventModel.fromMap(d.data(), d.id)).toList();
     });
   }
 
@@ -128,16 +116,10 @@ class AuctionController extends GetxController {
         createdAt: DateTime.now(),
         startedAt: DateTime.now(),
       );
-      await _db
-          .collection(AppConsts.colAuctions)
-          .doc(auctionId)
-          .set(auction.toMap());
+      await _db.collection(AppConsts.colAuctions).doc(auctionId).set(auction.toMap());
 
       // Link to group
-      await _db
-          .collection(AppConsts.colGroups)
-          .doc(_groupId)
-          .update({'currentAuctionId': auctionId, 'isAuctionLive': true});
+      await _db.collection(AppConsts.colGroups).doc(_groupId).update({'currentAuctionId': auctionId, 'isAuctionLive': true});
 
       currentAuction.value = auction;
 
@@ -202,10 +184,7 @@ class AuctionController extends GetxController {
       status: 'live',
     );
 
-    await _db
-        .collection(AppConsts.colAuctionRounds)
-        .doc(roundId)
-        .set(round.toMap());
+    await _db.collection(AppConsts.colAuctionRounds).doc(roundId).set(round.toMap());
     currentRound.value = round;
     rounds.add(round);
 
@@ -218,8 +197,7 @@ class AuctionController extends GetxController {
   // ── Set Active Player (broadcast to all) ─────────────────────────────────
 
   Future<void> _setActivePlayer(String playerId, int roundNumber) async {
-    final player =
-        _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
+    final player = _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
     if (player == null) return;
 
     final state = LiveAuctionState(
@@ -235,12 +213,7 @@ class AuctionController extends GetxController {
       updatedAt: DateTime.now(),
     );
 
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .collection('live_auction')
-        .doc('state')
-        .set(state.toMap());
+    await _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').set(state.toMap());
 
     activePlayer.value = player;
   }
@@ -290,14 +263,8 @@ class AuctionController extends GetxController {
       );
 
       // Broadcast sold animation
-      final player =
-          _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
-      await _db
-          .collection(AppConsts.colGroups)
-          .doc(_groupId)
-          .collection('live_auction')
-          .doc('state')
-          .update({
+      final player = _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
+      await _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').update({
         'lastAction': 'sold',
         'lastTeamName': teamName,
         'lastPoints': points,
@@ -310,8 +277,7 @@ class AuctionController extends GetxController {
         await NotificationService.instance.sendUserNotification(
           uid: playerUid,
           title: '🎉 Congratulations!',
-          body:
-              'You have been sold to $teamName for $points points! Welcome to the team.',
+          body: 'You have been sold to $teamName for $points points! Welcome to the team.',
           type: 'player_sold',
         );
       }
@@ -322,8 +288,7 @@ class AuctionController extends GetxController {
         await NotificationService.instance.sendUserNotification(
           uid: ownerUid,
           title: '🏆 Player Acquired!',
-          body:
-              'You have successfully bought ${player?.name ?? ''} for $points points. Well done!',
+          body: 'You have successfully bought ${player?.name ?? ''} for $points points. Well done!',
           type: 'player_bought',
         );
       }
@@ -347,12 +312,7 @@ class AuctionController extends GetxController {
 
     await _logEvent(playerId: playerId, eventType: 'skipped');
 
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .collection('live_auction')
-        .doc('state')
-        .update({
+    await _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').update({
       'lastAction': 'skip',
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -370,43 +330,24 @@ class AuctionController extends GetxController {
     final nextIndex = round.currentIndex + 1;
     if (nextIndex >= round.playerIds.length) {
       // Round complete
-      await _db
-          .collection(AppConsts.colAuctionRounds)
-          .doc(round.id)
-          .update({'status': 'completed', 'currentIndex': nextIndex});
+      await _db.collection(AppConsts.colAuctionRounds).doc(round.id).update({'status': 'completed', 'currentIndex': nextIndex});
 
       // Pause auction (admin manually starts next round)
-      await _db
-          .collection(AppConsts.colAuctions)
-          .doc(currentAuction.value?.id)
-          .update({'status': AppConsts.auctionStatusPaused});
+      await _db.collection(AppConsts.colAuctions).doc(currentAuction.value?.id).update({'status': AppConsts.auctionStatusPaused});
 
-      await _db
-          .collection(AppConsts.colGroups)
-          .doc(_groupId)
-          .collection('live_auction')
-          .doc('state')
-          .update({
+      await _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').update({
         'isLive': false,
         'lastAction': 'round_complete',
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      await _db
-          .collection(AppConsts.colGroups)
-          .doc(_groupId)
-          .update({'isAuctionLive': false});
+      await _db.collection(AppConsts.colGroups).doc(_groupId).update({'isAuctionLive': false});
 
-      Get.snackbar('Round ${round.roundNumber} Complete',
-          'Tap Start Next Round to continue');
+      Get.snackbar('Round ${round.roundNumber} Complete', 'Tap Start Next Round to continue');
     } else {
-      await _db
-          .collection(AppConsts.colAuctionRounds)
-          .doc(round.id)
-          .update({'currentIndex': nextIndex});
+      await _db.collection(AppConsts.colAuctionRounds).doc(round.id).update({'currentIndex': nextIndex});
       currentRound.value = round.copyWith(currentIndex: nextIndex);
-      await _setActivePlayer(
-          round.playerIds[nextIndex], round.roundNumber);
+      await _setActivePlayer(round.playerIds[nextIndex], round.roundNumber);
     }
   }
 
@@ -414,17 +355,11 @@ class AuctionController extends GetxController {
 
   Future<void> startNextRound() async {
     final nextRound = (currentAuction.value?.currentRound ?? 1) + 1;
-    await _db
-        .collection(AppConsts.colAuctions)
-        .doc(currentAuction.value?.id)
-        .update({
+    await _db.collection(AppConsts.colAuctions).doc(currentAuction.value?.id).update({
       'status': AppConsts.auctionStatusLive,
       'currentRound': nextRound,
     });
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .update({'isAuctionLive': true});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).update({'isAuctionLive': true});
 
     await createNextRound(roundNumber: nextRound);
   }
@@ -432,54 +367,30 @@ class AuctionController extends GetxController {
   // ── Stop/Pause ────────────────────────────────────────────────────────────
 
   Future<void> pauseAuction() async {
-    await _db
-        .collection(AppConsts.colAuctions)
-        .doc(currentAuction.value?.id)
-        .update({'status': AppConsts.auctionStatusPaused});
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .update({'isAuctionLive': false});
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .collection('live_auction')
-        .doc('state')
-        .update({
+    await _db.collection(AppConsts.colAuctions).doc(currentAuction.value?.id).update({'status': AppConsts.auctionStatusPaused});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).update({'isAuctionLive': false});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).collection('live_auction').doc('state').update({
       'isLive': false,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> resumeAuction() async {
-    await _db
-        .collection(AppConsts.colAuctions)
-        .doc(currentAuction.value?.id)
-        .update({'status': AppConsts.auctionStatusLive});
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .update({'isAuctionLive': true});
+    await _db.collection(AppConsts.colAuctions).doc(currentAuction.value?.id).update({'status': AppConsts.auctionStatusLive});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).update({'isAuctionLive': true});
 
     final round = currentRound.value;
     if (round != null && round.currentPlayerId != null) {
-      await _setActivePlayer(
-          round.currentPlayerId!, round.roundNumber);
+      await _setActivePlayer(round.currentPlayerId!, round.roundNumber);
     }
   }
 
   Future<void> _completeAuction(String auctionId) async {
-    await _db
-        .collection(AppConsts.colAuctions)
-        .doc(auctionId)
-        .update({
+    await _db.collection(AppConsts.colAuctions).doc(auctionId).update({
       'status': AppConsts.auctionStatusCompleted,
       'completedAt': FieldValue.serverTimestamp(),
     });
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .update({'isAuctionLive': false});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).update({'isAuctionLive': false});
     Get.snackbar('Auction Complete', 'All rounds finished!');
   }
 
@@ -492,8 +403,7 @@ class AuctionController extends GetxController {
     String? teamName,
     int? points,
   }) async {
-    final player =
-        _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
+    final player = _playerCtrl.players.firstWhereOrNull((p) => p.id == playerId);
     final eventId = const Uuid().v4();
     final event = AuctionEventModel(
       id: eventId,
@@ -508,10 +418,7 @@ class AuctionController extends GetxController {
       points: points,
       timestamp: DateTime.now(),
     );
-    await _db
-        .collection(AppConsts.colBids)
-        .doc(eventId)
-        .set(event.toMap());
+    await _db.collection(AppConsts.colBids).doc(eventId).set(event.toMap());
   }
 
   // ── Validate Bid in real time ─────────────────────────────────────────────
@@ -519,8 +426,7 @@ class AuctionController extends GetxController {
   void onBidPointsChanged(int points) {
     selectedPoints.value = points;
     if (selectedTeamId.value.isEmpty) return;
-    final team = _teamCtrl.teams
-        .firstWhereOrNull((t) => t.id == selectedTeamId.value);
+    final team = _teamCtrl.teams.firstWhereOrNull((t) => t.id == selectedTeamId.value);
     if (team == null) return;
     bidValidationError.value = _teamCtrl.validateBid(
           team: team,
@@ -568,4 +474,3 @@ extension AuctionRoundExt on AuctionRoundModel {
     );
   }
 }
-

@@ -1,3 +1,4 @@
+import 'package:cricbid/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +8,7 @@ import '../../core/consts/app_consts.dart';
 import '../../core/widgets/app_widgets.dart';
 import './chat_controller.dart';
 import '../auth/auth_controller.dart';
-import '../../models/app_models.dart';
+
 import '../group/group_controller.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -76,11 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.chat_bubble_outline,
-                          size: 48,
-                          color: isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textTertiary),
+                      Icon(Icons.chat_bubble_outline, size: 48, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiary),
                       const SizedBox(height: 12),
                       Text(
                         'No messages yet\nStart the conversation!',
@@ -94,24 +91,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
               return ListView.builder(
                 controller: _scrollCtrl,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 itemCount: messages.length,
                 itemBuilder: (_, i) {
                   final msg = messages[i];
-                  final isMe =
-                      msg.senderUid == _authCtrl.uid;
+                  final isMe = msg.senderUid == _authCtrl.uid;
                   // Show date separator if needed
-                  bool showDate = i == 0 ||
-                      !_isSameDay(
-                          messages[i - 1].sentAt, msg.sentAt);
+                  bool showDate = i == 0 || !_isSameDay(messages[i - 1].sentAt, msg.sentAt);
 
                   return Column(
                     children: [
                       if (showDate)
                         Padding(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Text(
                             _formatDate(msg.sentAt),
                             style: theme.textTheme.labelSmall,
@@ -134,10 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : AppColors.white,
               border: Border(
-                top: BorderSide(
-                    color: isDark
-                        ? AppColors.darkBorder
-                        : AppColors.border),
+                top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
               ),
             ),
             child: SafeArea(
@@ -151,15 +140,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         filled: true,
-                        fillColor: isDark
-                            ? AppColors.darkSurfaceVariant
-                            : AppColors.surface,
+                        fillColor: isDark ? AppColors.darkSurfaceVariant : AppColors.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: _send,
@@ -175,8 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         color: theme.colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 20),
+                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                     ),
                   ),
                 ],
@@ -194,8 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _msgCtrl.clear();
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
 
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
@@ -234,11 +218,9 @@ class _ChatBubble extends StatelessWidget {
     }
 
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -251,14 +233,11 @@ class _ChatBubble extends StatelessWidget {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: isMe
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 if (!isMe)
                   Padding(
-                    padding:
-                        const EdgeInsets.only(left: 4, bottom: 2),
+                    padding: const EdgeInsets.only(left: 4, bottom: 2),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -270,8 +249,7 @@ class _ChatBubble extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 1),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: roleBadgeColor.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(4),
@@ -289,11 +267,9 @@ class _ChatBubble extends StatelessWidget {
                     ),
                   ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   constraints: BoxConstraints(
-                    maxWidth:
-                        MediaQuery.of(context).size.width * 0.72,
+                    maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
                   decoration: BoxDecoration(
                     color: isMe
@@ -311,9 +287,7 @@ class _ChatBubble extends StatelessWidget {
                   child: Text(
                     message.text,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isMe
-                          ? Colors.white
-                          : null,
+                      color: isMe ? Colors.white : null,
                     ),
                   ),
                 ),

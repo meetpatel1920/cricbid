@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/team_model.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:excel/excel.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../core/consts/app_consts.dart';
-import '../../models/app_models.dart';
 import '../auth/auth_controller.dart';
 import '../group/group_controller.dart';
 
@@ -34,29 +32,22 @@ class TeamController extends GetxController {
         .where('groupId', isEqualTo: groupId)
         .orderBy('createdAt')
         .snapshots()
-        .map((s) =>
-            s.docs.map((d) => TeamModel.fromMap(d.data(), d.id)).toList());
+        .map((s) => s.docs.map((d) => TeamModel.fromMap(d.data(), d.id)).toList());
   }
 
   Future<void> loadTeams() async {
     if (_groupId.isEmpty) return;
     isLoading.value = true;
     try {
-      final snap = await _db
-          .collection(AppConsts.colTeams)
-          .where('groupId', isEqualTo: _groupId)
-          .orderBy('createdAt')
-          .get();
-      teams.value =
-          snap.docs.map((d) => TeamModel.fromMap(d.data(), d.id)).toList();
+      final snap = await _db.collection(AppConsts.colTeams).where('groupId', isEqualTo: _groupId).orderBy('createdAt').get();
+      teams.value = snap.docs.map((d) => TeamModel.fromMap(d.data(), d.id)).toList();
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<TeamModel?> getTeam(String teamId) async {
-    final doc =
-        await _db.collection(AppConsts.colTeams).doc(teamId).get();
+    final doc = await _db.collection(AppConsts.colTeams).doc(teamId).get();
     if (doc.exists) return TeamModel.fromMap(doc.data()!, doc.id);
     return null;
   }
@@ -92,22 +83,13 @@ class TeamController extends GetxController {
         createdAt: DateTime.now(),
       );
 
-      await _db
-          .collection(AppConsts.colTeams)
-          .doc(teamId)
-          .set(team.toMap());
+      await _db.collection(AppConsts.colTeams).doc(teamId).set(team.toMap());
 
       // Check if owner already has an account, link them
-      final userQuery = await _db
-          .collection(AppConsts.colUsers)
-          .where('phone', isEqualTo: '+91${ownerPhone.trim()}')
-          .get();
+      final userQuery = await _db.collection(AppConsts.colUsers).where('phone', isEqualTo: '+91${ownerPhone.trim()}').get();
       if (userQuery.docs.isNotEmpty) {
         final ownerDoc = userQuery.docs.first;
-        await _db
-            .collection(AppConsts.colTeams)
-            .doc(teamId)
-            .update({'ownerUid': ownerDoc.id});
+        await _db.collection(AppConsts.colTeams).doc(teamId).update({'ownerUid': ownerDoc.id});
         await ownerDoc.reference.update({
           'groupRoles.$_groupId': AppConsts.roleOwner,
         });
@@ -143,20 +125,12 @@ class TeamController extends GetxController {
 
       for (int i = 1; i < sheet.maxRows; i++) {
         final row = sheet.row(i);
-        if (row.isEmpty || row[AppConsts.excelTeamName]?.value == null)
-          continue;
+        if (row.isEmpty || row[AppConsts.excelTeamName]?.value == null) continue;
 
-        final name =
-            row[AppConsts.excelTeamName]?.value?.toString().trim() ?? '';
-        final ownerName =
-            row[AppConsts.excelTeamOwnerName]?.value?.toString().trim() ??
-                '';
-        final ownerPhone =
-            row[AppConsts.excelTeamOwnerPhone]?.value?.toString().trim() ??
-                '';
-        final ownerType =
-            row[AppConsts.excelTeamOwnerType]?.value?.toString().trim() ??
-                AppConsts.typeBatting;
+        final name = row[AppConsts.excelTeamName]?.value?.toString().trim() ?? '';
+        final ownerName = row[AppConsts.excelTeamOwnerName]?.value?.toString().trim() ?? '';
+        final ownerPhone = row[AppConsts.excelTeamOwnerPhone]?.value?.toString().trim() ?? '';
+        final ownerType = row[AppConsts.excelTeamOwnerType]?.value?.toString().trim() ?? AppConsts.typeBatting;
 
         if (name.isEmpty || ownerPhone.isEmpty) continue;
 
@@ -164,11 +138,9 @@ class TeamController extends GetxController {
           name: name,
           ownerName: ownerName,
           ownerPhone: ownerPhone,
-          ownerAddress:
-              row[AppConsts.excelTeamOwnerAddress]?.value?.toString(),
+          ownerAddress: row[AppConsts.excelTeamOwnerAddress]?.value?.toString(),
           ownerType: ownerType,
-          ownerLastTeam:
-              row[AppConsts.excelTeamLastTeam]?.value?.toString(),
+          ownerLastTeam: row[AppConsts.excelTeamLastTeam]?.value?.toString(),
         );
         added++;
       }
@@ -184,23 +156,14 @@ class TeamController extends GetxController {
   // ── Update Team Logo/Theme ────────────────────────────────────────────────
 
   Future<void> updateTeamLogo(String teamId, String logoUrl) async {
-    await _db
-        .collection(AppConsts.colTeams)
-        .doc(teamId)
-        .update({'logoUrl': logoUrl});
+    await _db.collection(AppConsts.colTeams).doc(teamId).update({'logoUrl': logoUrl});
     await loadTeams();
   }
 
   Future<void> updateTeamTheme(String teamId, String hexColor) async {
-    await _db
-        .collection(AppConsts.colTeams)
-        .doc(teamId)
-        .update({'themeColor': hexColor});
+    await _db.collection(AppConsts.colTeams).doc(teamId).update({'themeColor': hexColor});
     // Sync to group-level theme
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(_groupId)
-        .update({'teamThemeColor': hexColor});
+    await _db.collection(AppConsts.colGroups).doc(_groupId).update({'teamThemeColor': hexColor});
     await loadTeams();
   }
 
@@ -226,7 +189,7 @@ class TeamController extends GetxController {
     if (playersStillNeeded > 1) {
       final reserveNeeded = (playersStillNeeded - 1) * minPlayerPoints;
       if (remaining - bidPoints < reserveNeeded) {
-        return 'Need to reserve $reserveNeeded pts for ${ playersStillNeeded - 1} more players';
+        return 'Need to reserve $reserveNeeded pts for ${playersStillNeeded - 1} more players';
       }
     }
 
@@ -235,8 +198,7 @@ class TeamController extends GetxController {
 
   // ── Deduct Points After Sold ──────────────────────────────────────────────
 
-  Future<void> recordPlayerSold(
-      String teamId, int points, String playerId) async {
+  Future<void> recordPlayerSold(String teamId, int points, String playerId) async {
     await _db.collection(AppConsts.colTeams).doc(teamId).update({
       'spentPoints': FieldValue.increment(points),
       'playerCount': FieldValue.increment(1),

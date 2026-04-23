@@ -8,7 +8,7 @@ class ThemeService extends GetxController {
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
 
   ThemeData get lightTheme => AppTheme.lightTheme;
-  ThemeData get darkTheme => AppTheme.darkTheme;
+  ThemeData get darkTheme  => AppTheme.darkTheme;
 
   bool get isDark {
     if (themeMode.value == ThemeMode.system) {
@@ -36,20 +36,16 @@ class ThemeService extends GetxController {
     await prefs.setString(AppConsts.prefThemeMode, mode.name);
   }
 
-  void toggleTheme() {
-    setTheme(isDark ? ThemeMode.light : ThemeMode.dark);
-  }
+  // Alias used in settings_screen
+  Future<void> setThemeMode(ThemeMode mode) => setTheme(mode);
+
+  void toggleTheme() => setTheme(isDark ? ThemeMode.light : ThemeMode.dark);
 
   ThemeMode _parse(String v) {
     switch (v) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
+      case 'light':  return ThemeMode.light;
+      case 'dark':   return ThemeMode.dark;
+      default:       return ThemeMode.system;
     }
   }
-
-  void setThemeMode(ThemeMode themeMode) {}
 }

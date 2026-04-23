@@ -12,8 +12,8 @@ class OtpController extends GetxController {
   final RxBool otpComplete = false.obs;
 
   String get phone => _authCtrl.phone;
-  int get resendSeconds => _authCtrl.resendSeconds.value;
-  String get errorMessage => _authCtrl.errorMessage.value;
+  RxInt get resendSeconds => _authCtrl.resendSeconds;
+  RxString get errorMessage => _authCtrl.errorMessage;
 
   void onOtpChanged(String value) {
     if (_authCtrl.errorMessage.value.isNotEmpty) {

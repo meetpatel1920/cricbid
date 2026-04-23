@@ -1,15 +1,13 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/player_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:excel/excel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../core/consts/app_consts.dart';
-import '../../models/app_models.dart';
 import '../auth/auth_controller.dart';
 
 class PlayerController extends GetxController {
@@ -39,37 +37,25 @@ class PlayerController extends GetxController {
         .where('groupId', isEqualTo: groupId)
         .orderBy('playerNumber')
         .snapshots()
-        .map((s) =>
-            s.docs.map((d) => PlayerModel.fromMap(d.data(), d.id)).toList());
+        .map((s) => s.docs.map((d) => PlayerModel.fromMap(d.data(), d.id)).toList());
   }
 
   Future<void> loadPlayers() async {
     if (_groupId.isEmpty) return;
     isLoading.value = true;
     try {
-      final snap = await _db
-          .collection(AppConsts.colPlayers)
-          .where('groupId', isEqualTo: _groupId)
-          .orderBy('playerNumber')
-          .get();
-      players.value =
-          snap.docs.map((d) => PlayerModel.fromMap(d.data(), d.id)).toList();
+      final snap = await _db.collection(AppConsts.colPlayers).where('groupId', isEqualTo: _groupId).orderBy('playerNumber').get();
+      players.value = snap.docs.map((d) => PlayerModel.fromMap(d.data(), d.id)).toList();
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<int> _nextPlayerNumber() async {
-    final snap = await _db
-        .collection(AppConsts.colPlayers)
-        .where('groupId', isEqualTo: _groupId)
-        .orderBy('playerNumber', descending: true)
-        .limit(1)
-        .get();
+    final snap =
+        await _db.collection(AppConsts.colPlayers).where('groupId', isEqualTo: _groupId).orderBy('playerNumber', descending: true).limit(1).get();
     if (snap.docs.isEmpty) return 1;
-    return (PlayerModel.fromMap(snap.docs.first.data(), snap.docs.first.id)
-                .playerNumber) +
-        1;
+    return (PlayerModel.fromMap(snap.docs.first.data(), snap.docs.first.id).playerNumber) + 1;
   }
 
   // ── Add Single Player ────────────────────────────────────────────────────
@@ -112,26 +98,14 @@ class PlayerController extends GetxController {
         createdAt: DateTime.now(),
       );
 
-      await _db
-          .collection(AppConsts.colPlayers)
-          .doc(playerId)
-          .set(player.toMap());
+      await _db.collection(AppConsts.colPlayers).doc(playerId).set(player.toMap());
 
       // Check if user already exists with this phone
-      final userQuery = await _db
-          .collection(AppConsts.colUsers)
-          .where('phone', isEqualTo: '+91${phone.trim()}')
-          .get();
+      final userQuery = await _db.collection(AppConsts.colUsers).where('phone', isEqualTo: '+91${phone.trim()}').get();
       if (userQuery.docs.isNotEmpty) {
         final userDoc = userQuery.docs.first;
-        await _db
-            .collection(AppConsts.colPlayers)
-            .doc(playerId)
-            .update({'uid': userDoc.id});
-        final existingRole =
-            (userDoc.data()['groupRoles'] as Map?)
-                ?[_groupId] ??
-                '';
+        await _db.collection(AppConsts.colPlayers).doc(playerId).update({'uid': userDoc.id});
+        final existingRole = (userDoc.data()['groupRoles'] as Map?)?[_groupId] ?? '';
         if (existingRole.isEmpty) {
           await userDoc.reference.update({
             'groupRoles.$_groupId': AppConsts.rolePlayer,
@@ -169,29 +143,21 @@ class PlayerController extends GetxController {
 
       for (int i = 1; i < sheet.maxRows; i++) {
         final row = sheet.row(i);
-        if (row.isEmpty || row[AppConsts.excelPlayerName]?.value == null)
-          continue;
+        if (row.isEmpty || row[AppConsts.excelPlayerName]?.value == null) continue;
 
-        final name =
-            row[AppConsts.excelPlayerName]?.value?.toString().trim() ?? '';
-        final phone =
-            row[AppConsts.excelPlayerPhone]?.value?.toString().trim() ?? '';
-        final type =
-            row[AppConsts.excelPlayerType]?.value?.toString().trim() ??
-                AppConsts.typeBatting;
-        final imageUrl =
-            row[AppConsts.excelPlayerImageUrl]?.value?.toString().trim();
+        final name = row[AppConsts.excelPlayerName]?.value?.toString().trim() ?? '';
+        final phone = row[AppConsts.excelPlayerPhone]?.value?.toString().trim() ?? '';
+        final type = row[AppConsts.excelPlayerType]?.value?.toString().trim() ?? AppConsts.typeBatting;
+        final imageUrl = row[AppConsts.excelPlayerImageUrl]?.value?.toString().trim();
 
         if (name.isEmpty || phone.isEmpty) continue;
 
         await addPlayer(
           name: name,
           phone: phone,
-          address:
-              row[AppConsts.excelPlayerAddress]?.value?.toString(),
+          address: row[AppConsts.excelPlayerAddress]?.value?.toString(),
           type: type,
-          lastTeam:
-              row[AppConsts.excelPlayerLastTeam]?.value?.toString(),
+          lastTeam: row[AppConsts.excelPlayerLastTeam]?.value?.toString(),
           photoUrl: imageUrl,
         );
         added++;
@@ -211,14 +177,10 @@ class PlayerController extends GetxController {
     try {
       isUploading.value = true;
       final file = File(localPath);
-      final ref = _storage
-          .ref()
-          .child(AppConsts.storagePlayerImages)
-          .child('$playerId.jpg');
+      final ref = _storage.ref().child(AppConsts.storagePlayerImages).child('$playerId.jpg');
       final task = ref.putFile(file);
       task.snapshotEvents.listen((event) {
-        uploadProgress.value =
-            event.bytesTransferred / event.totalBytes;
+        uploadProgress.value = event.bytesTransferred / event.totalBytes;
       });
       await task;
       return await ref.getDownloadURL();
@@ -229,8 +191,7 @@ class PlayerController extends GetxController {
   }
 
   /// Pick image from gallery or camera, upload, return URL
-  Future<String?> pickAndUploadImage(
-      {required String playerId, bool fromCamera = false}) async {
+  Future<String?> pickAndUploadImage({required String playerId, bool fromCamera = false}) async {
     final XFile? image = await _picker.pickImage(
       source: fromCamera ? ImageSource.camera : ImageSource.gallery,
       maxWidth: 800,
@@ -244,10 +205,7 @@ class PlayerController extends GetxController {
   // ── Update Player Photo ──────────────────────────────────────────────────
 
   Future<void> updatePlayerPhoto(String playerId, String photoUrl) async {
-    await _db
-        .collection(AppConsts.colPlayers)
-        .doc(playerId)
-        .update({'photoUrl': photoUrl});
+    await _db.collection(AppConsts.colPlayers).doc(playerId).update({'photoUrl': photoUrl});
     final idx = players.indexWhere((p) => p.id == playerId);
     if (idx != -1) {
       players[idx] = players[idx].copyWith(photoUrl: photoUrl);
@@ -263,9 +221,7 @@ class PlayerController extends GetxController {
           p.auctionStatus == AppConsts.playerStatusPending)
       .toList();
 
-  List<PlayerModel> get soldPlayers => players
-      .where((p) => p.auctionStatus == AppConsts.playerStatusSold)
-      .toList();
+  List<PlayerModel> get soldPlayers => players.where((p) => p.auctionStatus == AppConsts.playerStatusSold).toList();
 
   PlayerModel? getPlayerByNumber(int number) {
     try {
@@ -275,6 +231,5 @@ class PlayerController extends GetxController {
     }
   }
 
-  List<PlayerModel> getPlayersForTeam(String teamId) =>
-      players.where((p) => p.teamId == teamId).toList();
+  List<PlayerModel> getPlayersForTeam(String teamId) => players.where((p) => p.teamId == teamId).toList();
 }

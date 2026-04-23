@@ -1,8 +1,8 @@
+import 'package:cricbid/models/team_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../player/player_controller.dart';
 import '../../core/widgets/app_widgets.dart';
-import '../../models/app_models.dart';
 
 class TeamRosterScreen extends StatelessWidget {
   const TeamRosterScreen({super.key});

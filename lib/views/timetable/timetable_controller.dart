@@ -1,5 +1,8 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/match_model.dart';
+import 'package:cricbid/models/team_model.dart';
+import 'package:cricbid/models/timetable_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
@@ -7,7 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/consts/app_consts.dart';
 import '../../services/pdf_generator.dart';
-import '../../models/app_models.dart';
+
 import '../auth/auth_controller.dart';
 import '../group/group_controller.dart';
 import '../team/team_controller.dart';
@@ -37,13 +40,8 @@ class TimetableController extends GetxController {
     if (_groupId.isEmpty) return;
     isLoading.value = true;
     try {
-      final snap = await _db
-          .collection(AppConsts.colTimetables)
-          .where('groupId', isEqualTo: _groupId)
-          .orderBy('createdAt', descending: true)
-          .get();
-      timetables.value =
-          snap.docs.map((d) => TimetableModel.fromMap(d.data(), d.id)).toList();
+      final snap = await _db.collection(AppConsts.colTimetables).where('groupId', isEqualTo: _groupId).orderBy('createdAt', descending: true).get();
+      timetables.value = snap.docs.map((d) => TimetableModel.fromMap(d.data(), d.id)).toList();
       if (timetables.isNotEmpty) {
         await loadMatches(timetables.first.id);
       }
@@ -53,13 +51,8 @@ class TimetableController extends GetxController {
   }
 
   Future<void> loadMatches(String timetableId) async {
-    final snap = await _db
-        .collection(AppConsts.colMatches)
-        .where('timetableId', isEqualTo: timetableId)
-        .orderBy('scheduledAt')
-        .get();
-    matches.value =
-        snap.docs.map((d) => MatchModel.fromMap(d.data(), d.id)).toList();
+    final snap = await _db.collection(AppConsts.colMatches).where('timetableId', isEqualTo: timetableId).orderBy('scheduledAt').get();
+    matches.value = snap.docs.map((d) => MatchModel.fromMap(d.data(), d.id)).toList();
   }
 
   // ── Auto-generate Timetable ───────────────────────────────────────────────
@@ -118,16 +111,13 @@ class TimetableController extends GetxController {
 
         // Semi-finals (1st from each group)
         if (numGroups >= 4) {
-          final sf1 = _createPlaceholderMatch(
-              'SF1', 'semi_final_1', matchNumber++);
-          final sf2 = _createPlaceholderMatch(
-              'SF2', 'semi_final_2', matchNumber++);
+          final sf1 = _createPlaceholderMatch('SF1', 'semi_final_1', matchNumber++);
+          final sf2 = _createPlaceholderMatch('SF2', 'semi_final_2', matchNumber++);
           generatedMatches.addAll([sf1, sf2]);
         }
 
         // Final
-        generatedMatches.add(
-            _createPlaceholderMatch('Final', 'final', matchNumber++));
+        generatedMatches.add(_createPlaceholderMatch('Final', 'final', matchNumber++));
       } else {
         // Simple round robin, no groups
         final teamIds = shuffled.map((t) => t.id).toList();
@@ -138,8 +128,7 @@ class TimetableController extends GetxController {
           startMatchNumber: 1,
         );
         matchNumber = generatedMatches.length + 1;
-        generatedMatches.add(
-            _createPlaceholderMatch('Final', 'final', matchNumber));
+        generatedMatches.add(_createPlaceholderMatch('Final', 'final', matchNumber));
       }
 
       // Assign dates/times
@@ -164,10 +153,7 @@ class TimetableController extends GetxController {
         groupTeams: groupTeams,
         createdAt: DateTime.now(),
       );
-      await _db
-          .collection(AppConsts.colTimetables)
-          .doc(ttId)
-          .set(timetable.toMap());
+      await _db.collection(AppConsts.colTimetables).doc(ttId).set(timetable.toMap());
 
       // Save matches
       final batch = _db.batch();
@@ -185,8 +171,7 @@ class TimetableController extends GetxController {
           matchNumber: match.matchNumber,
           scheduledAt: match.scheduledAt,
         );
-        batch.set(_db.collection(AppConsts.colMatches).doc(matchId),
-            matchWithGroup.toMap());
+        batch.set(_db.collection(AppConsts.colMatches).doc(matchId), matchWithGroup.toMap());
       }
       await batch.commit();
 
@@ -198,17 +183,11 @@ class TimetableController extends GetxController {
       );
 
       // Upload PDF
-      final pdfRef = _storage
-          .ref()
-          .child(AppConsts.storageTimetables)
-          .child('$ttId.pdf');
+      final pdfRef = _storage.ref().child(AppConsts.storageTimetables).child('$ttId.pdf');
       await pdfRef.putFile(pdfFile);
       final pdfUrl = await pdfRef.getDownloadURL();
 
-      await _db
-          .collection(AppConsts.colTimetables)
-          .doc(ttId)
-          .update({'pdfUrl': pdfUrl});
+      await _db.collection(AppConsts.colTimetables).doc(ttId).update({'pdfUrl': pdfUrl});
 
       await _groupCtrl.updateTimetableUrl(_groupId, pdfUrl);
 
@@ -228,8 +207,7 @@ class TimetableController extends GetxController {
 
       Get.back();
       // Offer share
-      await PdfGenerator.sharePdf(pdfFile,
-          subject: '${_groupCtrl.group?.name} Timetable');
+      await PdfGenerator.sharePdf(pdfFile, subject: '${_groupCtrl.group?.name} Timetable');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -266,8 +244,7 @@ class TimetableController extends GetxController {
     return matches;
   }
 
-  MatchModel _createPlaceholderMatch(
-      String label, String stage, int number) {
+  MatchModel _createPlaceholderMatch(String label, String stage, int number) {
     return MatchModel(
       id: '',
       groupId: _groupId,
@@ -292,15 +269,13 @@ class TimetableController extends GetxController {
   }) {
     if (matches.isEmpty) return;
 
-    DateTime currentDate = DateTime(
-        fromDate.year, fromDate.month, fromDate.day, 10, 0);
+    DateTime currentDate = DateTime(fromDate.year, fromDate.month, fromDate.day, 10, 0);
     int matchesOnDay = 0;
     const Duration matchGap = Duration(hours: 3);
 
     for (int i = 0; i < matches.length; i++) {
       if (matchesOnDay >= matchesPerDay) {
-        currentDate = DateTime(currentDate.year, currentDate.month,
-            currentDate.day + 1, 10, 0);
+        currentDate = DateTime(currentDate.year, currentDate.month, currentDate.day + 1, 10, 0);
         matchesOnDay = 0;
       }
 
@@ -319,8 +294,7 @@ class TimetableController extends GetxController {
         team2Name: matches[i].team2Name,
         stage: matches[i].stage,
         matchNumber: matches[i].matchNumber,
-        scheduledAt:
-            currentDate.add(Duration(hours: matchesOnDay * 3)),
+        scheduledAt: currentDate.add(Duration(hours: matchesOnDay * 3)),
       );
       matches[i] = updated;
       matchesOnDay++;
@@ -329,15 +303,13 @@ class TimetableController extends GetxController {
 
   // ── Schedule Match Notifications ─────────────────────────────────────────
 
-  Future<void> _scheduleMatchNotifications(
-      List<MatchModel> matches) async {
+  Future<void> _scheduleMatchNotifications(List<MatchModel> matches) async {
     for (final match in matches) {
       if (match.team1Id == 'tbd') continue;
       await NotificationService.instance.scheduleMatchNotification(
         id: match.matchNumber,
         title: '🏏 Match Today!',
-        body:
-            '${match.team1Name} vs ${match.team2Name} — Get ready, match in 2 hours!',
+        body: '${match.team1Name} vs ${match.team2Name} — Get ready, match in 2 hours!',
         scheduledTime: match.scheduledAt,
       );
     }
@@ -357,10 +329,7 @@ class TimetableController extends GetxController {
       isLoading.value = true;
       final bytes = result.files.single.bytes!;
       final ext = result.files.single.extension ?? 'pdf';
-      final ref = _storage
-          .ref()
-          .child(AppConsts.storageTimetables)
-          .child('custom_${_groupId}_${DateTime.now().millisecondsSinceEpoch}.$ext');
+      final ref = _storage.ref().child(AppConsts.storageTimetables).child('custom_${_groupId}_${DateTime.now().millisecondsSinceEpoch}.$ext');
 
       await ref.putData(bytes);
       final url = await ref.getDownloadURL();

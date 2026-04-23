@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:cricbid/models/match_model.dart';
+import 'package:cricbid/models/player_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,7 +10,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 
 import '../core/consts/app_consts.dart';
-import '../models/app_models.dart';
 
 class PdfGenerator {
   // ── Auction PDF (1 player per page) ──────────────────────────────────────

@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/message_model.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/consts/app_consts.dart';
-import '../../models/app_models.dart';
+
 import '../auth/auth_controller.dart';
 
 class ChatController extends GetxController {
@@ -31,8 +32,7 @@ class ChatController extends GetxController {
         .limitToLast(200)
         .snapshots()
         .listen((snap) {
-      messages.value =
-          snap.docs.map((d) => MessageModel.fromMap(d.data(), d.id)).toList();
+      messages.value = snap.docs.map((d) => MessageModel.fromMap(d.data(), d.id)).toList();
     });
   }
 
@@ -57,9 +57,6 @@ class ChatController extends GetxController {
   }
 
   Future<void> deleteMessage(String msgId) async {
-    await _db
-        .collection(AppConsts.colMessages)
-        .doc(msgId)
-        .update({'isDeleted': true});
+    await _db.collection(AppConsts.colMessages).doc(msgId).update({'isDeleted': true});
   }
 }

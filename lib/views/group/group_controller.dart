@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricbid/models/group_model.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../core/consts/app_consts.dart';
-import '../../routes/app_routes.dart';
-import '../../models/app_models.dart';
 import '../auth/auth_controller.dart';
 
 class GroupController extends GetxController {
@@ -32,20 +30,15 @@ class GroupController extends GetxController {
       return;
     }
 
-    final snap = await _db
-        .collection(AppConsts.colGroups)
-        .where(FieldPath.documentId, whereIn: groupIds)
-        .get();
+    final snap = await _db.collection(AppConsts.colGroups).where(FieldPath.documentId, whereIn: groupIds).get();
 
-    myGroups.value =
-        snap.docs.map((d) => GroupModel.fromMap(d.data(), d.id)).toList();
+    myGroups.value = snap.docs.map((d) => GroupModel.fromMap(d.data(), d.id)).toList();
   }
 
   Future<void> _loadCurrentGroup() async {
     final id = _authCtrl.currentGroupId.value;
     if (id.isEmpty) return;
-    final doc =
-        await _db.collection(AppConsts.colGroups).doc(id).get();
+    final doc = await _db.collection(AppConsts.colGroups).doc(id).get();
     if (doc.exists) {
       currentGroup.value = GroupModel.fromMap(doc.data()!, doc.id);
     }
@@ -54,11 +47,7 @@ class GroupController extends GetxController {
   Stream<GroupModel?> streamCurrentGroup() {
     final id = _authCtrl.currentGroupId.value;
     if (id.isEmpty) return const Stream.empty();
-    return _db
-        .collection(AppConsts.colGroups)
-        .doc(id)
-        .snapshots()
-        .map((s) => s.exists ? GroupModel.fromMap(s.data()!, s.id) : null);
+    return _db.collection(AppConsts.colGroups).doc(id).snapshots().map((s) => s.exists ? GroupModel.fromMap(s.data()!, s.id) : null);
   }
 
   // ── Create Group ────────────────────────────────────────────────────────
@@ -86,10 +75,7 @@ class GroupController extends GetxController {
         createdAt: DateTime.now(),
       );
 
-      await _db
-          .collection(AppConsts.colGroups)
-          .doc(groupId)
-          .set(group.toMap());
+      await _db.collection(AppConsts.colGroups).doc(groupId).set(group.toMap());
 
       // Update user roles
       await _db.collection(AppConsts.colUsers).doc(user.uid).update({
@@ -121,11 +107,9 @@ class GroupController extends GetxController {
   }) async {
     final Map<String, dynamic> updates = {};
     if (name != null) updates['name'] = name;
-    if (totalPointsPerTeam != null)
-      updates['totalPointsPerTeam'] = totalPointsPerTeam;
+    if (totalPointsPerTeam != null) updates['totalPointsPerTeam'] = totalPointsPerTeam;
     if (minPlayerPoints != null) updates['minPlayerPoints'] = minPlayerPoints;
-    if (maxPlayersPerTeam != null)
-      updates['maxPlayersPerTeam'] = maxPlayersPerTeam;
+    if (maxPlayersPerTeam != null) updates['maxPlayersPerTeam'] = maxPlayersPerTeam;
     if (teamThemeColor != null) updates['teamThemeColor'] = teamThemeColor;
 
     await _db.collection(AppConsts.colGroups).doc(groupId).update(updates);
@@ -135,20 +119,14 @@ class GroupController extends GetxController {
   // ── Team Theme Color ─────────────────────────────────────────────────────
 
   Future<void> setTeamThemeColor(String groupId, String hexColor) async {
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(groupId)
-        .update({'teamThemeColor': hexColor});
+    await _db.collection(AppConsts.colGroups).doc(groupId).update({'teamThemeColor': hexColor});
     await _loadCurrentGroup();
   }
 
   // ── Timetable URL ────────────────────────────────────────────────────────
 
   Future<void> updateTimetableUrl(String groupId, String url) async {
-    await _db
-        .collection(AppConsts.colGroups)
-        .doc(groupId)
-        .update({'timetableUrl': url});
+    await _db.collection(AppConsts.colGroups).doc(groupId).update({'timetableUrl': url});
     await _loadCurrentGroup();
   }
 

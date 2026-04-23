@@ -1,3 +1,4 @@
+import 'package:cricbid/models/match_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +9,6 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_widgets.dart';
 import './timetable_controller.dart';
 import '../group/group_controller.dart';
-import '../../models/app_models.dart';
 
 class TimetableScreen extends StatelessWidget {
   const TimetableScreen({super.key});

@@ -1,4 +1,4 @@
-import 'package:cricbid/views/dashboard/dashboard_screen.dart';
+import './dashboard_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';

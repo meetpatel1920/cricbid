@@ -1,3 +1,4 @@
+import 'package:cricbid/models/player_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,7 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/consts/app_consts.dart';
 import '../../core/widgets/app_widgets.dart';
 import '../../services/pdf_generator.dart';
-import '../../models/app_models.dart';
+
 import '../group/group_controller.dart';
 import '../player/player_controller.dart';
 import '../team/team_controller.dart';

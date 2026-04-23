@@ -31,5 +31,5 @@ class LoginController extends GetxController {
     isLoading.value = false;
   }
 
-  String get errorMessage => _authCtrl.errorMessage.value;
+  RxString get errorMessage => _authCtrl.errorMessage;
 }
