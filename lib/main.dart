@@ -3,70 +3,65 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'app/bindings/initial_binding.dart';
-import 'app/routes/app_pages.dart';
-import 'app/routes/app_routes.dart';
-import 'app/theme/theme_controller.dart';
-import 'core/utils/notification_service.dart';
+
+import 'bindings/initial_binding.dart';
+import 'routes/app_pages.dart';
+import 'routes/app_routes.dart';
+import 'core/theme/theme_service.dart';
+import 'services/notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // System UI
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-    ),
+    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
   ]);
 
-  // Theme controller (needs to be before GetMaterialApp)
-  final themeCtrl = Get.put(ThemeController(), permanent: true);
+  // Init theme before app
+  final themeService = Get.put(ThemeService(), permanent: true);
 
-  // Notification service
+  // Init notification service
   final notifService = Get.put(NotificationService(), permanent: true);
   await notifService.initialize();
 
-  runApp(CricBidApp(themeCtrl: themeCtrl));
+  runApp(CricBidApp(themeService: themeService));
 }
 
 class CricBidApp extends StatelessWidget {
-  final ThemeController themeCtrl;
-  const CricBidApp({super.key, required this.themeCtrl});
+  final ThemeService themeService;
+  const CricBidApp({super.key, required this.themeService});
 
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(390, 844), // iPhone 14 base
+      designSize: const Size(390, 844),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
         return Obx(() => GetMaterialApp(
               title: 'CricBid',
               debugShowCheckedModeBanner: false,
-              theme: themeCtrl.lightTheme,
-              darkTheme: themeCtrl.darkTheme,
-              themeMode: themeCtrl.themeMode.value,
+              theme: themeService.lightTheme,
+              darkTheme: themeService.darkTheme,
+              themeMode: themeService.themeMode.value,
               initialBinding: InitialBinding(),
               initialRoute: AppRoutes.splash,
               getPages: AppPages.pages,
               defaultTransition: Transition.cupertino,
-              transitionDuration: const Duration(milliseconds: 250),
+              transitionDuration: const Duration(milliseconds: 280),
               builder: (context, widget) {
-                // Ensure text scale doesn't go crazy on system settings
                 return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+                  data: MediaQuery.of(context)
+                      .copyWith(textScaler: TextScaler.noScaling),
                   child: widget!,
                 );
               },
